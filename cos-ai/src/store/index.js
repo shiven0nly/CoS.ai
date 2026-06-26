@@ -1,7 +1,9 @@
 import { configureStore } from '@reduxjs/toolkit';
+import aiReducer from '../features/aiAssistant/slices/aiSlice';
 
 export const store = configureStore({
   reducer: {
-    // We will add slices here later (e.g., auth: authReducer, tasks: taskReducer, etc.)
+    aiAssistant: aiReducer
   },
 });
+
