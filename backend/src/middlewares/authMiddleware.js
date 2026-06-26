@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const AppError = require('../utils/AppError');
 
 // Protect routes
 exports.protect = async (req, res, next) => {
@@ -17,20 +18,24 @@ exports.protect = async (req, res, next) => {
     token = req.cookies.token;
   }
 
-  // Make sure token exists
   if (!token) {
-    return res.status(401).json({ success: false, error: 'Not authorized to access this route' });
+    return next(new AppError('Not authorized to access this route', 401));
   }
 
   try {
-    // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Attach user to req object
-    req.user = await User.findById(decoded.id);
+    // Select minimal fields — never expose passwordHash to req.user
+    const user = await User.findById(decoded.id).select('-password');
 
+    // Guard: token valid but user was deleted
+    if (!user) {
+      return next(new AppError('The user belonging to this token no longer exists.', 401));
+    }
+
+    req.user = user;
     next();
   } catch (error) {
-    return res.status(401).json({ success: false, error: 'Not authorized to access this route' });
+    return next(new AppError('Not authorized to access this route', 401));
   }
 };

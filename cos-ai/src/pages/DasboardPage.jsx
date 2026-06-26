@@ -1,10 +1,91 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { 
-  CheckCircle2, Flame, BrainCircuit, Calendar, 
+import {
+  CheckCircle2, Flame, BrainCircuit, Calendar,
   Clock, Plus, ArrowRight, Zap, Target
 } from 'lucide-react';
 import { GlassCard } from '../components/ui/GlassCard';
+
+// ── Static mock data (replace with Redux state once wired up) ──────────────
+const CALENDAR_EVENTS = [
+  { time: '11:30 AM', title: 'Daily Sync', type: 'meeting' },
+  { time: '01:00 PM', title: 'Lunch Buffer', type: 'break' },
+  { time: '02:00 PM', title: 'Deep Work: Database', type: 'focus' },
+];
+
+const TASKS = [
+  { title: 'Review pull requests from staging', project: 'Engineering', energy: 'High', time: '45m', complete: true },
+  { title: 'Design the Productivity Dashboard',  project: 'Design UI/UX',  energy: 'High', time: '2h',  complete: false, active: true },
+  { title: 'Write Express.js server routes',     project: 'Backend',       energy: 'Med',  time: '1.5h', complete: false },
+  { title: 'Draft investor update email',        project: 'Admin',         energy: 'Low',  time: '30m', complete: false },
+];
+
+const EVENT_STYLES = {
+  meeting: 'bg-[#5E6AD2]/10 border-[#5E6AD2]/20 text-[#A371F7]',
+  break:   'bg-[#22C55E]/10 border-[#22C55E]/20 text-[#22C55E]',
+  focus:   'bg-[#F59E0B]/10 border-[#F59E0B]/20 text-[#F59E0B]',
+};
+
+const ENERGY_STYLES = {
+  High: 'bg-[#EF4444]/20 text-[#EF4444]',
+  Low:  'bg-[#22C55E]/20 text-[#22C55E]',
+  Med:  'bg-[#F59E0B]/20 text-[#F59E0B]',
+};
+
+// ── Reusable sub-components ─────────────────────────────────────────────────
+const CalendarEvent = ({ time, title, type }) => (
+  <div className="flex items-center gap-4">
+    <span className="text-xs text-[#737373] w-14">{time}</span>
+    <div className={`flex-1 px-3 py-2 border rounded-lg text-sm ${EVENT_STYLES[type] ?? EVENT_STYLES.focus}`}>
+      {title}
+    </div>
+  </div>
+);
+
+const TaskItem = ({ task }) => (
+  <motion.div
+    layout
+    className={`group relative flex items-center gap-4 p-4 rounded-xl border ${
+      task.active
+        ? 'bg-linear-to-r from-[#5E6AD2]/10 to-transparent border-[#5E6AD2]/30 shadow-[inset_4px_0_0_#5E6AD2]'
+        : 'bg-white/2 border-white/5 hover:border-white/10 hover:bg-white/5'
+    } transition-all cursor-pointer`}
+    role="listitem"
+  >
+    <button
+      aria-label={task.complete ? 'Mark as incomplete' : 'Mark as complete'}
+      className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${
+        task.complete ? 'bg-[#5E6AD2] border-[#5E6AD2]' : 'border-[#8A8A93] group-hover:border-[#5E6AD2]'
+      }`}
+    >
+      {task.complete && <CheckCircle2 className="w-3 h-3 text-white" aria-hidden="true" />}
+    </button>
+
+    <div className="flex-1 min-w-0">
+      <h4 className={`text-sm font-medium truncate ${task.complete ? 'text-[#737373] line-through' : 'text-[#D4D4D4]'}`}>
+        {task.title}
+      </h4>
+      <div className="flex items-center gap-3 mt-1.5 opacity-80 flex-wrap">
+        <span className="text-[10px] text-[#A371F7] uppercase tracking-widest font-semibold">{task.project}</span>
+        <span className="text-[10px] text-[#8A8A93] flex items-center gap-1">
+          <Clock className="w-3 h-3" aria-hidden="true" /> {task.time}
+        </span>
+        <span className={`text-[10px] px-1.5 rounded-sm ${ENERGY_STYLES[task.energy] ?? ENERGY_STYLES.Med}`}>
+          ⚡ {task.energy}
+        </span>
+      </div>
+    </div>
+
+    {task.active && (
+      <div className="absolute right-4 top-1/2 -translate-y-1/2" aria-label="In progress" role="status">
+        <span className="flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#A371F7] opacity-75" />
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-[#5E6AD2]" />
+        </span>
+      </div>
+    )}
+  </motion.div>
+);
 
 export default function DasboardPage() {
   return (
@@ -81,22 +162,9 @@ export default function DasboardPage() {
                  <Calendar className="w-4 h-4 text-[#8A8A93]" />
                  Upcoming
                </h2>
-               <div className="space-y-4">
-                 {[
-                   { time: "11:30 AM", title: "Daily Sync", type: "meeting" },
-                   { time: "01:00 PM", title: "Lunch Buffer", type: "break" },
-                   { time: "02:00 PM", title: "Deep Work: Database", type: "focus" }
-                 ].map((evt, i) => (
-                   <div key={i} className="flex items-center gap-4">
-                     <span className="text-xs text-[#737373] w-14">{evt.time}</span>
-                     <div className={`flex-1 px-3 py-2 border rounded-lg text-sm ${
-                        evt.type === 'meeting' ? 'bg-[#5E6AD2]/10 border-[#5E6AD2]/20 text-[#A371F7]' :
-                        evt.type === 'break' ? 'bg-[#22C55E]/10 border-[#22C55E]/20 text-[#22C55E]' :
-                        'bg-[#F59E0B]/10 border-[#F59E0B]/20 text-[#F59E0B]'
-                     }`}>
-                       {evt.title}
-                     </div>
-                   </div>
+              <div className="space-y-4">
+                 {CALENDAR_EVENTS.map((evt) => (
+                   <CalendarEvent key={evt.time} {...evt} />
                  ))}
                </div>
             </GlassCard>
@@ -118,51 +186,9 @@ export default function DasboardPage() {
                 </div>
               </div>
 
-              <div className="space-y-3">
-                 {[
-                   { title: "Review pull requests from staging", project: "Engineering", energy: "High", time: "45m", complete: true },
-                   { title: "Design the Productivity Dashboard", project: "Design UI/UX", energy: "High", time: "2h", complete: false, active: true },
-                   { title: "Write Express.js server routes", project: "Backend", energy: "Med", time: "1.5h", complete: false },
-                   { title: "Draft investor update email", project: "Admin", energy: "Low", time: "30m", complete: false }
-                 ].map((task, i) => (
-                   <motion.div 
-                     layout
-                     key={i} 
-                     className={`group relative flex items-center gap-4 p-4 rounded-xl border ${
-                       task.active 
-                        ? 'bg-gradient-to-r from-[#5E6AD2]/10 to-transparent border-[#5E6AD2]/30 shadow-[inset_4px_0_0_#5E6AD2]' 
-                        : 'bg-white/[0.02] border-white/5 hover:border-white/10 hover:bg-white/5'
-                     } transition-all cursor-pointer`}
-                   >
-                      <button className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${
-                        task.complete ? 'bg-[#5E6AD2] border-[#5E6AD2]' : 'border-[#8A8A93] group-hover:border-[#5E6AD2]'
-                      }`}>
-                        {task.complete && <CheckCircle2 className="w-3 h-3 text-white" />}
-                      </button>
-                      
-                      <div className="flex-1">
-                        <h4 className={`text-sm font-medium ${task.complete ? 'text-[#737373] line-through' : 'text-[#D4D4D4]'}`}>
-                          {task.title}
-                        </h4>
-                        <div className="flex items-center gap-3 mt-1.5 opacity-80">
-                          <span className="text-[10px] text-[#A371F7] uppercase tracking-widest font-semibold">{task.project}</span>
-                          <span className="text-[10px] text-[#8A8A93] flex items-center gap-1"><Clock className="w-3 h-3"/> {task.time}</span>
-                          <span className={`text-[10px] px-1.5 rounded-sm ${
-                            task.energy === 'High' ? 'bg-[#EF4444]/20 text-[#EF4444]' : 
-                            task.energy === 'Low' ? 'bg-[#22C55E]/20 text-[#22C55E]' : 'bg-[#F59E0B]/20 text-[#F59E0B]'
-                          }`}>⚡ {task.energy}</span>
-                        </div>
-                      </div>
-
-                      {task.active && (
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                           <span className="flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#A371F7] opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#5E6AD2]"></span>
-                          </span>
-                        </div>
-                      )}
-                   </motion.div>
+              <div className="space-y-3" role="list" aria-label="Today's tasks">
+                 {TASKS.map((task) => (
+                   <TaskItem key={task.title} task={task} />
                  ))}
               </div>
             </GlassCard>

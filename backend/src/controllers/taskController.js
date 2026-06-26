@@ -37,19 +37,20 @@ exports.createTask = async (req, res, next) => {
 // @access  Private
 exports.updateTask = async (req, res, next) => {
   try {
-    let task = await Task.findById(req.params.id);
+    const task = await Task.findById(req.params.id);
     if (!task) return next(new AppError('Task not found', 404));
+    if (task.user.toString() !== req.user.id)
+      return next(new AppError('Not authorized to update this task', 403));
 
-    if (task.user.toString() !== req.user.id) {
-       return next(new AppError('Not authorized to update this task', 401));
-    }
+    // Prevent malicious body injection from overriding the owner
+    delete req.body.user;
 
-    task = await Task.findByIdAndUpdate(req.params.id, req.body, {
+    const updated = await Task.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
-      runValidators: true
+      runValidators: true,
     });
 
-    res.status(200).json({ success: true, data: task });
+    res.status(200).json({ success: true, data: updated });
   } catch (error) {
     next(error);
   }
@@ -62,10 +63,8 @@ exports.deleteTask = async (req, res, next) => {
   try {
     const task = await Task.findById(req.params.id);
     if (!task) return next(new AppError('Task not found', 404));
-
-    if (task.user.toString() !== req.user.id) {
-       return next(new AppError('Not authorized to delete this task', 401));
-    }
+    if (task.user.toString() !== req.user.id)
+      return next(new AppError('Not authorized to delete this task', 403));
 
     await task.deleteOne();
     res.status(200).json({ success: true, data: {} });
