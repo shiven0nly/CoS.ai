@@ -14,9 +14,15 @@ const triggerRescueMode = async (payload) => {
   return response.data;
 };
 
+const generateSchedule = async (payload) => {
+  const response = await axios.post(API_URL + 'generate-schedule', payload);
+  return response.data;
+};
+
 const aiService = {
   orchestrateDay,
-  triggerRescueMode
+  triggerRescueMode,
+  generateSchedule
 };
 
 export default aiService;

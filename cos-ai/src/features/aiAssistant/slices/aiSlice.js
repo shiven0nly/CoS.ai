@@ -4,6 +4,7 @@ import aiService from '../services/aiService';
 const initialState = {
   orchestration: null,
   crisisPlan: null,
+  dailySchedule: null,
   isGenerating: false,
   isError: false,
   message: '',
@@ -33,6 +34,18 @@ export const triggerRescueMode = createAsyncThunk(
   }
 );
 
+export const generateDailySchedule = createAsyncThunk(
+  'aiAssistant/generateSchedule',
+  async (schedulePayload, thunkAPI) => {
+    try {
+      return await aiService.generateSchedule(schedulePayload);
+    } catch (error) {
+      const message = error.response?.data?.error || error.message || error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
 export const aiSlice = createSlice({
   name: 'aiAssistant',
   initialState,
@@ -42,6 +55,7 @@ export const aiSlice = createSlice({
       state.isGenerating = false;
       state.message = '';
       state.crisisPlan = null;
+      state.dailySchedule = null;
     }
   },
   extraReducers: (builder) => {
@@ -68,6 +82,19 @@ export const aiSlice = createSlice({
         state.crisisPlan = action.payload.crisisPlan;
       })
       .addCase(triggerRescueMode.rejected, (state, action) => {
+        state.isGenerating = false;
+        state.isError = true;
+        state.message = action.payload;
+      })
+      // Generate Schedule
+      .addCase(generateDailySchedule.pending, (state) => {
+        state.isGenerating = true;
+      })
+      .addCase(generateDailySchedule.fulfilled, (state, action) => {
+        state.isGenerating = false;
+        state.dailySchedule = action.payload.schedulePlan;
+      })
+      .addCase(generateDailySchedule.rejected, (state, action) => {
         state.isGenerating = false;
         state.isError = true;
         state.message = action.payload;

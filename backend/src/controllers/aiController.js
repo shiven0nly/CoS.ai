@@ -130,4 +130,73 @@ exports.rescueDeadline = async (req, res, next) => {
   }
 };
 
+// @desc    Generate a granular daily schedule
+// @route   POST /api/ai/generate-schedule
+// @access  Private
+exports.generateSchedule = async (req, res, next) => {
+  try {
+    const { 
+      tasks, 
+      priority, 
+      energy, 
+      availableTime, 
+      calendar, 
+      deadline 
+    } = req.body;
+
+    // VALIDATION
+    if (!tasks || tasks.length === 0) {
+      return next(new AppError('Must provide tasks to generate a schedule.', 400));
+    }
+
+    const schedulePrompt = `
+      You are an AI Time-Blocking Expert.
+      Given:
+      - Tasks: ${JSON.stringify(tasks)}
+      - Priorities: ${priority}
+      - Energy Level: ${energy}
+      - Available Time: ${availableTime}
+      - Calendar Events: ${JSON.stringify(calendar)}
+      - Deadlines: ${deadline}
+
+      Generate an optimal timeline placing deep work during high energy periods and admin during low energy.
+      Ensure there is buffer time between context switching. End the day with a Review Session.
+      STRICT JSON OUPUT format:
+      {
+        "timeBlocks": [{ "startTime": "09:00", "endTime": "10:30", "taskId": "...", "label": "Deep Work" }],
+        "breaks": [{ "startTime": "10:30", "endTime": "10:45", "label": "Coffee Break" }],
+        "deepWorkSessions": 2,
+        "bufferTimeTotalMinutes": 45,
+        "reviewSession": { "startTime": "16:45", "endTime": "17:00", "label": "Day Review & Planner" }
+      }
+    `;
+
+    // MOCK RESPONSE
+    const mockSchedule = {
+      timeBlocks: [
+        { startTime: "09:00", endTime: "11:00", task: tasks[0]?.title || "Primary Deep Work", label: "Deep Work Session ⚡", intensity: 'high' },
+        { startTime: "11:30", endTime: "12:30", task: tasks[1]?.title || "Secondary Task", label: "General Work", intensity: 'medium' },
+        { startTime: "13:30", endTime: "15:00", task: "Emails & Admin", label: "Low Energy Operations", intensity: 'low' }
+      ],
+      breaks: [
+        { startTime: "11:00", endTime: "11:15", label: "Walk / Stretch Break" },
+        { startTime: "12:30", endTime: "13:30", label: "Lunch & Detach" },
+        { startTime: "15:00", endTime: "15:15", label: "Brain Buffer" }
+      ],
+      deepWorkSessions: 1,
+      bufferTimeTotalMinutes: 90,
+      reviewSession: { startTime: "16:45", endTime: "17:00", label: "Review Day & Stage Tomorrow" }
+    };
+
+    res.status(200).json({ 
+      success: true, 
+      schedulePlan: mockSchedule 
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 
