@@ -72,3 +72,62 @@ exports.orchestrateDay = async (req, res, next) => {
   }
 };
 
+// @desc    Trigger AI Crisis Planner (Rescue Mode)
+// @route   POST /api/ai/rescue
+// @access  Private
+exports.rescueDeadline = async (req, res, next) => {
+  try {
+    const { timeRemainingMinutes, tasksDue } = req.body;
+
+    if (!tasksDue || tasksDue.length === 0) {
+      return next(new AppError('Must provide tasksDue to evaluate rescue plan.', 400));
+    }
+
+    const totalEstimated = tasksDue.reduce((sum, task) => sum + (task.estimatedMinutes || 0), 0);
+    const isImpossible = totalEstimated > timeRemainingMinutes;
+
+    const crisisPrompt = `
+      You are an AI Crisis Planner. The user is behind schedule.
+      - Time Remaining: ${timeRemainingMinutes} minutes
+      - Minimum Required Work: ${totalEstimated} minutes
+      - Tasks: ${JSON.stringify(tasksDue)}
+      
+      Completion is ${isImpossible ? "IMPOSSIBLE" : "AT RISK"}.
+      Generate a realistic emergency rescue strategy prioritizing essential work, suggesting shortcuts, and dropping unnecessary tasks. 
+      Output STRICTLY this JSON structure:
+      {
+        "status": "IMPOSSIBLE | HIGH RISK",
+        "analysis": "Short analysis of remaining time vs work.",
+        "emergencyStrategy": "High level strategy",
+        "essentialPriority": ["taskId1"],
+        "suggestedShortcuts": [{"task": "taskId1", "shortcut": "Use generic auth instead of custom."}],
+        "droppedTasks": ["taskId_dropped"],
+        "actionPlan": [{"step": 1, "action": "Do X immediately", "timeLimit": "30m"}]
+      }
+    `;
+
+    // MOCK RESPONSE
+    const mockRescue = {
+      status: isImpossible ? "IMPOSSIBLE" : "HIGH RISK",
+      analysis: `You have ${timeRemainingMinutes}m but ${totalEstimated}m of work. Standard completion will fail. We must cut scope.`,
+      emergencyStrategy: "Drop the analytics page. Hardocde the frontend mock data to speed up the demo. Focus exclusively on the working AI backend logic.",
+      essentialPriority: tasksDue.map(t => t.id || t.title).slice(0, 2),
+      suggestedShortcuts: [{ task: "Auth UI", shortcut: "Copy-paste pre-built Tailwind auth components and forego tests." }],
+      droppedTasks: tasksDue.map(t => t.id || t.title).slice(2),
+      actionPlan: [
+        { step: 1, action: "Lock in the core API endpoint", timeLimit: "45m" },
+        { step: 2, action: "Wire the frontend with hardcoded user bypass", timeLimit: "15m" }
+      ]
+    };
+
+    res.status(200).json({ 
+      success: true, 
+      crisisPlan: mockRescue 
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+
