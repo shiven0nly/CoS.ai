@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { 
   ArrowRight, BrainCircuit, CalendarClock, ShieldAlert,
   Zap, ChevronRight, Play, Code, MessageCircle, Briefcase
@@ -41,12 +42,16 @@ export default function LandingPage() {
             <a href="#testimonials" className="hover:text-white transition-colors">Wall of Love</a>
           </div>
           <div className="flex items-center gap-4">
+            <a href="/signin">
             <button className="text-sm font-medium text-[#A3A3A3] hover:text-white transition-colors hidden md:block">
               Sign In
             </button>
+            </a>
+            <a href="/dashboard">
             <button className="h-10 px-6 rounded-lg bg-white/5 border border-white/10 text-sm font-medium hover:bg-white/10 transition-all">
               Initialize Dashboard
             </button>
+            </a>
           </div>
         </div>
       </nav>
@@ -69,9 +74,9 @@ export default function LandingPage() {
               Stop maintaining passive to-do lists. CoS.ai actively breaks down your goals, intelligent slots them into your calendar, and rescues missed deadlines before they happen.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <button className="h-14 px-8 rounded-xl bg-gradient-to-r from-[#5E6AD2] to-[#A371F7] text-white font-semibold text-lg flex items-center gap-2 hover:shadow-[0_0_30px_rgba(163,113,247,0.4)] hover:scale-[1.02] transition-all">
+              <Link to="/signin" className="h-14 px-8 rounded-xl bg-gradient-to-r from-[#5E6AD2] to-[#A371F7] text-white font-semibold text-lg flex items-center gap-2 hover:shadow-[0_0_30px_rgba(163,113,247,0.4)] hover:scale-[1.02] transition-all">
                 Start Free Trial <ArrowRight className="w-5 h-5" />
-              </button>
+              </Link>
               <button className="h-14 px-8 rounded-xl bg-white/5 border border-white/10 text-white font-semibold text-lg flex items-center gap-2 hover:bg-white/10 transition-all">
                 <Play className="w-5 h-5" /> View Demo
               </button>
@@ -226,9 +231,9 @@ export default function LandingPage() {
          <div className="max-w-4xl mx-auto text-center relative z-10">
             <h2 className="text-4xl md:text-5xl font-semibold mb-6">Stop managing tasks.<br/>Start executing strategy.</h2>
             <p className="text-[#8A8A93] mb-10 text-lg">Join 10,000+ top performers letting AI handle the logistics of their workday.</p>
-            <button className="h-16 px-10 rounded-2xl bg-white text-[#0D0D12] hover:bg-[#E2E2E2] font-semibold text-lg flex items-center justify-center gap-2 mx-auto transition-transform hover:scale-105">
+            <Link to="/signin" className="h-16 px-10 rounded-2xl bg-white text-[#0D0D12] hover:bg-[#E2E2E2] font-semibold text-lg flex items-center justify-center gap-2 mx-auto transition-transform hover:scale-105 w-fit">
                 Initialize Your AI Staff <ChevronRight className="w-5 h-5" />
-            </button>
+            </Link>
             <p className="text-[#737373] text-sm mt-4">14-day free trial. No credit card required.</p>
          </div>
       </section>
