@@ -19,10 +19,22 @@ const generateSchedule = async (payload) => {
   return response.data;
 };
 
+const rankPriorities = async (payload) => {
+  const response = await axios.post(API_URL + 'rank-priorities', payload);
+  return response.data;
+};
+
+const productivityCoach = async (payload) => {
+  const response = await axios.post(API_URL + 'coach', payload);
+  return response.data;
+};
+
 const aiService = {
   orchestrateDay,
   triggerRescueMode,
-  generateSchedule
+  generateSchedule,
+  rankPriorities,
+  productivityCoach
 };
 
 export default aiService;

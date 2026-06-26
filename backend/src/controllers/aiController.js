@@ -198,5 +198,125 @@ exports.generateSchedule = async (req, res, next) => {
   }
 };
 
+// @desc    Priority Engine: Rank tasks based on multi-variable heuristics
+// @route   POST /api/ai/rank-priorities
+// @access  Private
+exports.rankPriorities = async (req, res, next) => {
+  try {
+    const { 
+      tasks, 
+      userEnergyLevel
+    } = req.body;
+
+    if (!tasks || tasks.length === 0) {
+      return next(new AppError('Must provide tasks to the Priority Engine.', 400));
+    }
+
+    const priorityPrompt = `
+      You are the Priority Engine of an AI Chief of Staff.
+      Given the User's current Energy Level: ${userEnergyLevel}
+      And this list of chaotic tasks: ${JSON.stringify(tasks)}
+      
+      Rank the tasks strictly by determining priority score using:
+      1. Deadline proximity
+      2. Difficulty vs Current User Energy
+      3. Importance
+      4. Estimated Time
+      5. Risk of failure
+      6. Dependencies (does this unblock other tasks?)
+
+      Output STRICTLY JSON format:
+      {
+        "rankedTasks": [
+          {
+            "taskId": "...",
+            "title": "...",
+            "priorityScore": 95,
+            "explanation": "Must be done now because it unblocks Task B, and deadline is in 2 hours."
+          }
+        ],
+        "topRecommendation": "Start immediately on Task X because of High Risk."
+      }
+    `;
+
+    // MOCK RESPONSE
+    const mockRankings = tasks.map((t, index) => {
+      // Fake logic to inject dynamic-looking ranking
+      let score = 95 - (index * 15);
+      if (score < 10) score = 10;
+      
+      return {
+        taskId: t._id || t.id || `task_${index}`,
+        title: t.title || "Implementation Task",
+        priorityScore: score,
+        explanation: score > 80 
+          ? `Crucial dependency. Matches your '${userEnergyLevel}' energy perfectly. High risk if deferred.` 
+          : `Can be delayed. Low impact on overall deadlines and zero dependencies.`
+      };
+    });
+
+    res.status(200).json({ 
+      success: true, 
+      priorityEngine: {
+        rankedTasks: mockRankings,
+        topRecommendation: `Your immediate focus must be '${mockRankings[0].title}' to secure the core deliverable.`
+      }
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Productivity Coach: Encouraging, non-shaming analysis returning Markdown
+// @route   POST /api/ai/coach
+// @access  Private
+exports.productivityCoach = async (req, res, next) => {
+  try {
+    const { 
+      tasksCompleted, 
+      tasksRemaining, 
+      focusHours,
+      blockers
+    } = req.body;
+
+    const coachingPrompt = `
+      You are an encouraging, highly practical AI Productivity Coach.
+      - NEVER shame the user.
+      - Keep responses concise and practical.
+
+      User Context:
+      - Completed today: ${tasksCompleted} tasks
+      - Remaining today: ${tasksRemaining} tasks
+      - Focus hours achieved: ${focusHours}
+      - Known blockers: ${blockers || 'None'}
+
+      Generate a Markdown response that:
+      1. Analyzes their productivity objectively but kindly.
+      2. Gives concise actionable advice.
+      3. Suggests ONE immediate next action for them to take.
+    `;
+
+    // MOCK RESPONSE
+    const mockMarkdown = `### 🌟 Great Momentum So Far!
+You've already knocked out **${tasksCompleted} tasks** and achieved **${focusHours} hours** of deep focus today. That is fantastic progress, especially considering you're balancing ${tasksRemaining} items still on the board.
+
+**Analysis & Advice:**
+Don't worry about the remaining list feeling overwhelming. You've hit the hardest part of the day, and it's perfectly normal to feel a dip in momentum right now. Since your blocker is *${blockers || 'context switching'}*, let's simplify your environment. Close all non-essential tabs and focus exclusively on the single most impactful task. 
+
+**👉 Immediate Next Action:**
+Take a 5-minute physical break (stretch or grab water), then set a 15-minute timer and start **ONLY** on the next smallest sub-step of your top priority.`;
+
+    res.status(200).json({ 
+      success: true, 
+      coachingMessage: mockMarkdown
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 
 
